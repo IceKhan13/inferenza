@@ -5,6 +5,13 @@ edition = "2021"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-
-# serde_json is just for the example, not required in general
 serde_json = "1.0"
+ndarray = "0.16.1"
+ndarray-linalg = "0.16.0"
+prost = "0.13"
+prost-types = "0.13"
+tokio = { version = "1", features = ["full"] } # For async file reading
+num = "0.4"
+
+[build-dependencies]
+prost-build = "0.13.3"
