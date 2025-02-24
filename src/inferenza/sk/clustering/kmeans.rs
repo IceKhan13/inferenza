@@ -8,8 +8,6 @@ use crate::inferenza::utils;
 /// Kmeans Scikit learn model
 #[derive(Debug)]
 struct KmeansModel<T> {
-    // number of clusters
-    n_clusters: u32,
     // cluster centers in form of NDArray
     cluster_centers: Array2<T>,
 }
@@ -17,7 +15,10 @@ struct KmeansModel<T> {
 impl OnnxLoadable<KmeansModel<f32>> for KmeansModel<f32> 
 {
     /// Loads Kmeans model from ONNX proto model
-    fn load_from_onnx_proto(model: onnx::ModelProto) -> KmeansModel<f32> {
+    fn load_from_onnx_proto(path: &str) -> KmeansModel<f32> {
+        let model = utils::load_onnx_model_proto(path)
+            .expect("Model has not been loaded.");
+
         // get model graph
         let graph = model.graph
             .expect("NO graph in the model");
@@ -38,7 +39,6 @@ impl OnnxLoadable<KmeansModel<f32>> for KmeansModel<f32>
         ).unwrap();
 
         KmeansModel {
-            n_clusters: shape.0 as u32,
             cluster_centers,
         }
     }
@@ -96,9 +96,7 @@ mod tests {
 
     #[test]
     fn test_kmeans() {
-        let model = utils::load_onnx_model_proto("tests/resources/kmeans.onnx")
-            .expect("Model has not been loaded.");
-        let kmeans = KmeansModel::load_from_onnx_proto(model);
+        let kmeans = KmeansModel::load_from_onnx_proto("tests/resources/kmeans.onnx");
         
         let input = Array2::from_shape_vec(
             (3, 3), vec![
