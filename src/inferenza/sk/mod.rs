@@ -1,5 +1,4 @@
 mod clustering;
-mod naive_bayes;
 mod supervised;
 
 use ndarray::Array2;
