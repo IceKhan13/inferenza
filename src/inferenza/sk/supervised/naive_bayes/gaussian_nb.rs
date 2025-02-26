@@ -1,14 +1,11 @@
-use ndarray::{Array1, Array2, Array3};
+use ndarray::{Array1, Array2};
 use crate::onnx;
-use crate::inferenza::sk::naive_bayes::NaiveBayesAlgorithm;
+use crate::inferenza::sk::supervised::naive_bayes::NaiveBayesAlgorithm;
 use crate::inferenza::OnnxLoadable;
 use crate::inferenza::utils;
-use std::f64::consts::PI;
 use ndarray::Axis;
 use onnx::TensorProto;
 use ndarray::stack;
-use std::any::type_name;
-
 
 // struct for GaussianNB Scikit learn model, i.e. the minimum data we need from the model to make a prediction on unseen data
 #[derive(Debug)] // Q: what does this do?
@@ -27,24 +24,15 @@ fn convert_tensorproto_to_ndarray(tensor: &TensorProto) -> Array1<f32> {
         tensor.dims[0] as usize,
     );
     Array1::from_vec(data)
-    // Array1::from_shape_vec(shape, data).unwrap() // Convert to ndarray
 }
 
 fn convert_tensorproto_to_ndarray_2(tensor: &TensorProto) -> Array2<f32> {
     let data: Vec<f32> = tensor.float_data.clone(); // Extract data (adjust based on TensorProto type)
-    
-    // let shape = tensor.dims.clone(); // Get dimensions
-    // let rows = shape[0] as usize;
-    // let cols = shape[1] as usize;
 
     let shape = (
         tensor.dims[1] as usize,
         tensor.dims[2] as usize,
     );
-
-    // println!("{:?}", shape);
-    // println!("{:?}", data);
-    
 
     Array2::from_shape_vec(shape, data).unwrap() // Convert to ndarray
 }
@@ -79,7 +67,7 @@ impl OnnxLoadable<GaussianNBModel> for GaussianNBModel
             mean: theta_array, // each row is a class, each column is a feature
             variance: sigma_array, // each row is a class, each column is a feature
             log_prior_prob: jointi_array, // what proportion of trained data falls into each class
-            sigma_sum_log: sigma_sum_log
+            sigma_sum_log: sigma_sum_log // intermediate calculation required for prediction
         }
     }
 }
