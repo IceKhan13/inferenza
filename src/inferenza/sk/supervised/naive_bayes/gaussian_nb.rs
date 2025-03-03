@@ -20,9 +20,6 @@ struct GaussianNBModel {
 fn convert_tensorproto_to_ndarray(tensor: &TensorProto) -> Array1<f32> {
     let data: Vec<f32> = tensor.float_data.clone(); // Extract data (adjust based on TensorProto type)
 
-    let shape = (
-        tensor.dims[0] as usize,
-    );
     Array1::from_vec(data)
 }
 
@@ -41,7 +38,8 @@ fn convert_tensorproto_to_ndarray_2(tensor: &TensorProto) -> Array2<f32> {
 impl OnnxLoadable<GaussianNBModel> for GaussianNBModel
 {
     // load GaussianNB model from ONNX proto model
-    fn load_from_onnx_proto(model: onnx::ModelProto) -> GaussianNBModel {
+    fn load_from_onnx_proto(path: &str) -> GaussianNBModel {
+        let model: onnx::ModelProto = utils::load_onnx_model_proto(path).expect("Model has not been loaded.");
         // extract the minimum data we need to add to the GaussianNBModel struct
         let graph = model.graph.expect("NO graph in the model");
 
@@ -84,7 +82,6 @@ impl NaiveBayesAlgorithm<f32> for GaussianNBModel
 
             // get log of prior probability for this class
             let jointi = self.log_prior_prob[i];
-            println!("JOINT_I FOR CLass I: {:?}", jointi);
 
             // Extract the i-th row from theta_ and var_
             let theta_row = self.mean.row(i);
@@ -132,11 +129,8 @@ mod tests {
 
     #[test]
     fn test_gaussian_nb() {
-        // get the onnx format of model
-        let model = utils::load_onnx_model_proto("tests/resources/gaussian_nb.onnx").expect("Model has not been loaded");
-
-        // extract most important data from the onnx model into a rust struct
-        let gaussian_nb = GaussianNBModel::load_from_onnx_proto(model);
+        // extract most important info from onnx model for prediction
+        let gaussian_nb = GaussianNBModel::load_from_onnx_proto("tests/resources/gaussian_nb.onnx");
 
         let input = Array2::from_shape_vec(
             (3,4), vec![
@@ -146,8 +140,8 @@ mod tests {
             ]
         ).unwrap();
 
+        // make prediction using loaded onnx model and input data
         let prediction = gaussian_nb.predict(input);
-
 
         assert_eq!(vec![0.0, 1.0, 2.0], prediction.to_vec());
     }
