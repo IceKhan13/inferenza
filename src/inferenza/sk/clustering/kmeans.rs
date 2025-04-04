@@ -24,16 +24,16 @@ impl OnnxLoadable<KmeansModel<f32>> for KmeansModel<f32>
             .expect("NO graph in the model");
 
         // read constructor data from model proto
-        // third element (index 2) of initializer array is storing cluster centers
+        // get third element (index 2) of initializer array, i.e. cluster centers
         let initializer_centers_data = graph.initializer
             .get(2)
             .expect("No cluster centers in initializer.");
-        // get shape from dimention field of initializer to shape cluster centers into NDArray
+        // get shape from dimension field of initializer to shape cluster centers into NDArray
         let shape = (
             initializer_centers_data.dims[0] as usize,
             initializer_centers_data.dims[1] as usize
         );
-        // shape cluster centers into NDArray
+        // shape cluster centers into NDArray (2d array, n_features by n_clusters)
         let cluster_centers: Array2<f32> = Array2::from_shape_vec(
             shape, initializer_centers_data.float_data.clone()
         ).unwrap();
